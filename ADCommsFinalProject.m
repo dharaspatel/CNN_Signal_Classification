@@ -4,18 +4,19 @@
 load trainedModulationClassificationNetwork
 
 modulationTypes = categorical(["B-FM","DSB-AM","SSB-AM"]);
-numFramesperModType = 1000;
+numFramesperModType = 100;
 
 sps = 8;                % Samples per symbol
 spf = 1024;             % Samples per frame
 symbolsPerFrame = spf / sps;
 freqdev = 100;
 [audioSrc, fs] = audioread('audio_mix_441.wav');
-fc = fs/2;
+fc = (fs/2)-1;
 snr = 20;
 po = 30;
 transDelay = 50;
-
+dataDirectory = fullfile(tempdir,"ModClassDataFiles");
+fileNameRoot = "Frame";
 
 for i = 1:length(modulationTypes)
     modType = modulationTypes(i);
@@ -34,8 +35,13 @@ for i = 1:length(modulationTypes)
         rx = pfo(rx);
         frame = helperModClassFrameGenerator(rx, spf, spf, transDelay, sps);
           % Save data file
-          fileName = sprintf("%s%s%03d",'Frame',modulationTypes(modType),j);
+          fileName = fullfile(dataDirectory,...
+            sprintf("%s%s%03d",fileNameRoot,modulationTypes(modType),j));
           save(fileName,"frame","modType");
     end
     
 end  
+
+helperModClassPlotSpectrogram(dataDirectory,modulationTypes,fs,sps)
+
+% [prediction1,score1] = classify(trainedNet,unknownFrames);
